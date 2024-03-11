@@ -1,14 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/task-create.dto';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TaskService {
   constructor(private prisma: PrismaService) {}
 
   async getById(id: number) {
-    console.log(typeof id)
-
     const task = await this.prisma.task.findUnique({ where: { id } });
 
     if (!task) throw new NotFoundException('There isn`t task with such id!');
