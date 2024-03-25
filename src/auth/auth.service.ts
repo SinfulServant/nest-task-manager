@@ -75,6 +75,7 @@ export class AuthService {
   }
 
   async profile(userId: number) {
+    console.log(userId);
     return await this.prisma.user.findFirst({
       where: {
         id: userId,

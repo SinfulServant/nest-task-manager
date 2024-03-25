@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from './auth.guard';
+import { IUser } from './jwt-strategy';
 
 @Controller('auth')
 export class AuthController {
@@ -31,7 +32,9 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get('profile')
-  async profile(@Req() req) {
-    return await this.authService.profile(req.user.id);
+  async profile(@Req() req: Request & { user?: IUser }) {
+    const user = req.user as IUser;
+    console.log(user.id);
+    return await this.authService.profile(user.id);
   }
 }
