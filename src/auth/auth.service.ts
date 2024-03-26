@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -52,13 +57,11 @@ export class AuthService {
     );
 
     if (checkPassword) {
-      const accessToken = this.generateJWT({
-        sub: checkUserExists.id,
+      return this.generateJWT({
+        id: checkUserExists.id,
         name: checkUserExists.name,
         email: checkUserExists.email,
       });
-
-      return `Authentication=${accessToken}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${jwt_config.expired}`;
     } else {
       throw new HttpException(
         'User or password not match',
@@ -68,13 +71,15 @@ export class AuthService {
   }
 
   generateJWT(payload: any) {
-    return this.jwtService.sign(payload, {
+    const accessToken = this.jwtService.sign(payload, {
       secret: jwt_config.secret,
       expiresIn: jwt_config.expired,
     });
+    return `Authentication=${accessToken}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${jwt_config.expired}`;
   }
 
   async profile(userId: number) {
+    console.log(userId);
     return await this.prisma.user.findFirst({
       where: {
         id: userId,
@@ -84,5 +89,55 @@ export class AuthService {
         email: true,
       },
     });
+  }
+
+  async signInByGoogle(user) {
+    if (!user) {
+      throw new BadRequestException('Unauthenticated');
+    }
+
+    const userExists = await this.findUserByEmail(user.email);
+
+    if (!userExists) {
+      return this.registerByGoogle(user);
+    }
+    console.log('login by google! User - ', userExists);
+
+    return this.generateJWT({
+      id: userExists.id,
+      name: userExists.name,
+      email: userExists.email,
+    });
+  }
+
+  async registerByGoogle(user) {
+    try {
+      console.log('registred by google!');
+      const newUser = await this.prisma.user.create({
+        data: { email: user.email, name: user.email },
+      });
+
+      return this.generateJWT({
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findUserByEmail(email) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email: email,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return user;
   }
 }

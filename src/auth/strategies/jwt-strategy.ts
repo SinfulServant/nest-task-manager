@@ -8,30 +8,26 @@ import { Request } from 'express';
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor() {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        JwtStrategy.extractJwt,
-        ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ]),
-      ignoreExpiration: false,
+      jwtFromRequest: ExtractJwt.fromExtractors([JwtStrategy.extractJwt]),
       secretOrKey: jwt_config.secret,
     });
   }
 
   async validate(payload: any) {
+    console.log(payload);
     return {
       id: payload.sub,
       email: payload.email,
-      expired: payload.exp,
     };
   }
 
   private static extractJwt(req: Request): string | null {
     if (
       req.cookies &&
-      'access_token' in req.cookies &&
-      req.cookies.access_token.length > 0
+      'Authentication' in req.cookies &&
+      req.cookies.Authentication.length > 0
     ) {
-      return req.cookies.access_token;
+      return req.cookies.Authentication;
     }
     return null;
   }
