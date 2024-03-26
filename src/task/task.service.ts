@@ -14,12 +14,18 @@ export class TaskService {
     return task;
   }
 
-  async getAllTasks() {
-    return this.prisma.task.findMany();
+  async getAllTasks(userId) {
+    return this.prisma.task.findMany({
+      where: {
+        authorId: userId,
+      },
+    });
   }
 
-  async createTask(dto: CreateTaskDto) {
-    return this.prisma.task.create({ data: { isDone: false, ...dto } });
+  async createTask(dto: CreateTaskDto, user: any) {
+    return this.prisma.task.create({
+      data: { isDone: false, ...dto, authorId: user.id },
+    });
   }
 
   async toggleTask(id: number) {

@@ -11,11 +11,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
 @Module({
   imports: [
     PrismaModule,
-    PassportModule.register({
-      defaultStrategy: 'jwt',
-      property: 'user',
-      session: false,
-    }),
+    PassportModule,
     JwtModule.register({
       secret: jwt_config.secret,
       signOptions: {
